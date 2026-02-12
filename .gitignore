@@ -66,6 +66,9 @@ dist/
 *.db-shm
 *.db-wal
 
+# Uploaded files
+uploads/
+
 # Log files
 *.log
 
