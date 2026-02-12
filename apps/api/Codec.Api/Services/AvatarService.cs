@@ -82,7 +82,12 @@ public class AvatarService : IAvatarService
     /// <inheritdoc />
     public void DeleteAvatar(string relativePath)
     {
-        var fullPath = Path.Combine(_rootPath, relativePath);
+        var fullPath = Path.GetFullPath(Path.Combine(_rootPath, relativePath));
+        if (!fullPath.StartsWith(Path.GetFullPath(_rootPath) + Path.DirectorySeparatorChar))
+        {
+            return;
+        }
+
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);
@@ -93,6 +98,13 @@ public class AvatarService : IAvatarService
     public string? ResolveUrl(string? relativePath)
     {
         if (string.IsNullOrEmpty(relativePath))
+        {
+            return null;
+        }
+
+        // Ensure the relative path stays within the storage root.
+        var fullPath = Path.GetFullPath(Path.Combine(_rootPath, relativePath));
+        if (!fullPath.StartsWith(Path.GetFullPath(_rootPath) + Path.DirectorySeparatorChar))
         {
             return null;
         }
