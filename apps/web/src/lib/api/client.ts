@@ -3,6 +3,7 @@ import type {
 	DiscoverServer,
 	Channel,
 	Message,
+	Reaction,
 	Member,
 	UserProfile
 } from '$lib/types/index.js';
@@ -120,5 +121,23 @@ export class ApiClient {
 			headers: this.headers(token, true),
 			body: JSON.stringify({ body })
 		});
+	}
+
+	/* ───── Reactions ───── */
+
+	toggleReaction(
+		token: string,
+		channelId: string,
+		messageId: string,
+		emoji: string
+	): Promise<{ action: string; reactions: Reaction[] }> {
+		return this.request(
+			`${this.baseUrl}/channels/${encodeURIComponent(channelId)}/messages/${encodeURIComponent(messageId)}/reactions`,
+			{
+				method: 'POST',
+				headers: this.headers(token, true),
+				body: JSON.stringify({ emoji })
+			}
+		);
 	}
 }

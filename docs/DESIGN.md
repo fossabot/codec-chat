@@ -129,6 +129,32 @@ The palette is drawn from the **CODEC phosphor-green CRT** theme defined in [THE
 - Member cards: avatar (32px), display name, role badge
 - Online indicator dot (future)
 
+## Emoji Reactions
+
+### Floating Action Bar
+
+- Appears on message hover, positioned at top-right of the message (`top: -14px; right: 32px`)
+- Contains a smiley-face react button (34×32px)
+- Styled with `--bg-secondary` background, `--border` border, 6px border-radius
+- Hover: background shifts to `--bg-message-hover`, icon to `--accent`
+
+### Emoji Picker Popover
+
+- Opens below the react button (`top: calc(100% + 4px); right: 0`)
+- Displays 8 quick-select emojis: 👍 ❤️ 😂 🎉 🔥 👀 🚀 💯
+- `--bg-secondary` background with `--border` border, 8px border-radius, subtle box-shadow
+- Each emoji is a 36×36px button with hover background highlight
+- Clicking an emoji toggles the reaction and closes the picker
+
+### Reaction Pills
+
+- Rendered below the message body via `ReactionBar.svelte`
+- Each pill: emoji + count, inline-flex, 6px padding, 12px border-radius
+- Default: `--bg-tertiary` background, `--border` border, `--text-muted` count text
+- Active (current user has reacted): `--accent` border, `--accent` count text
+- Clickable to toggle the reaction on/off
+- Hover: background shifts to `--bg-message-hover`
+
 ## Animations & Micro-interactions
 
 - **Transitions**: 150–200ms ease for background/color changes

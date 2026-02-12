@@ -68,6 +68,7 @@ Create a Discord-like app called Codec with a SvelteKit web front-end and an ASP
 - Feature-grouped Svelte 5 components (server-sidebar, channel-sidebar, chat, members)
 - +page.svelte reduced to ~75-line thin composition shell
 - Sign-out button in user panel
+- Emoji reactions on messages (toggle, real-time sync via SignalR, floating action bar, reaction pills)
 
 ## Task breakdown: Session Persistence
 
@@ -177,6 +178,49 @@ Create a Discord-like app called Codec with a SvelteKit web front-end and an ASP
 - [x] Update AUTH.md with modular code references and sign-out status
 - [x] Update DESIGN.md implementation notes
 - [x] Update PLAN.md with refactoring milestone
+
+## Task breakdown: Emoji Reactions
+
+### API – Reaction model & database
+- [x] Create `Reaction` entity (Id, MessageId, UserId, Emoji, CreatedAt)
+- [x] Create `ToggleReactionRequest` DTO record
+- [x] Add `Reactions` DbSet to `CodecDbContext`
+- [x] Configure Reaction→Message and Reaction→User relationships
+- [x] Add unique index on (MessageId, UserId, Emoji)
+- [x] Create and apply EF Core migration (`AddReactions`)
+
+### API – Toggle endpoint & SignalR broadcast
+- [x] Add `POST /channels/{channelId}/messages/{messageId}/reactions` endpoint
+- [x] Validate server membership before allowing reaction toggle
+- [x] Toggle logic: add if not present, remove if already exists
+- [x] Return grouped reaction summary (emoji, count, userIds)
+- [x] Broadcast `ReactionUpdated` event to channel group via SignalR
+- [x] Include reactions in `GetMessages` response
+- [x] Include empty reactions array in `PostMessage` broadcast payload
+
+### Web – Types, API client & SignalR
+- [x] Add `Reaction` type to `models.ts` (emoji, count, userIds)
+- [x] Add `reactions: Reaction[]` to `Message` type
+- [x] Add `toggleReaction()` method to `ApiClient`
+- [x] Add `ReactionUpdate` type and `onReactionUpdated` callback to `ChatHubService`
+- [x] Register `ReactionUpdated` handler in hub `start()` method
+
+### Web – State & UI components
+- [x] Add `toggleReaction(messageId, emoji)` action to `AppState`
+- [x] Wire `onReactionUpdated` SignalR callback in `startSignalR()`
+- [x] Create `ReactionBar.svelte` — reaction pills (emoji + count, active highlight)
+- [x] Add floating action bar to `MessageItem.svelte` (react button at top-right on hover)
+- [x] Add emoji picker popover (8 quick emojis, opens below button)
+- [x] Integrate `ReactionBar` into `MessageItem` when reactions exist
+
+### Documentation
+- [x] Update ARCHITECTURE.md (file tree, endpoints, SignalR events, data model)
+- [x] Update FEATURES.md (move reactions from Planned to Implemented)
+- [x] Update DATA.md (schema diagram, entity definition, indexes, DbContext)
+- [x] Update DESIGN.md (reaction UI components specification)
+- [x] Update PLAN.md (current status, task breakdown)
+- [x] Update README.md (features list)
+- [x] Update apps/web/README.md (file tree)
 
 ## Next steps
 - Introduce role-based authorization rules for additional operations

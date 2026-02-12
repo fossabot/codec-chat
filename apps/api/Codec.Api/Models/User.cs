@@ -11,4 +11,5 @@ public class User
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public List<Message> Messages { get; set; } = new();
     public List<ServerMember> ServerMemberships { get; set; } = new();
+    public List<Reaction> Reactions { get; set; } = new();
 }

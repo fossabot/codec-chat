@@ -19,7 +19,7 @@ src/
 │   ├── components/      # Presentational Svelte 5 components grouped by feature
 │   │   ├── server-sidebar/   # Server icon rail
 │   │   ├── channel-sidebar/  # Channel list, user panel
-│   │   ├── chat/             # Message feed, composer, typing indicator
+│   │   ├── chat/             # Message feed, composer, typing indicator, reactions
 │   │   └── members/          # Members sidebar grouped by role
 │   └── index.ts         # Public barrel exports
 └── routes/

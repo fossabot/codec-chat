@@ -65,8 +65,18 @@ EF Core migrations make database provider switches straightforward.
        │                 │ AuthorName  │    │  │
        │                 │ Body        │    │  │
        │                 │ CreatedAt   │    │  │
-       │                 └─────────────┘    │  │
-       │                                    │  │
+       │                 └──────┬──────┘    │  │
+       │                        │           │  │
+       │                 ┌──────┴──────┐    │  │
+       │                 │  Reaction   │    │  │
+       │                 │─────────────│    │  │
+       │                 │ Id (PK)     │    │  │
+       │                 │ MessageId   │────┘  │
+       │                 │ UserId      │───────┼──┐
+       │                 │ Emoji       │       │  │
+       │                 │ CreatedAt   │       │  │
+       │                 └─────────────┘       │  │
+       │                                       │  │
        │                 ┌─────────────┐    │  │
        └─────────────────┤  Channel    │◄───┘  │
                          │─────────────│       │
@@ -170,11 +180,29 @@ Individual chat message in a channel.
 **Relationships:**
 - Many-to-one with `Channel`
 - Many-to-one with `User` (optional)
+- One-to-many with `Reaction`
 
 **Notes:**
 - `AuthorUserId` is nullable for system messages
 - `AuthorName` is a snapshot (denormalized) for performance
 - `Body` is plain text (future: rich text/markdown)
+
+#### Reaction
+Emoji reaction on a message by a specific user.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Id` | Guid (PK) | Unique reaction identifier |
+| `MessageId` | Guid (FK) | Reference to Message |
+| `UserId` | Guid (FK) | Reference to User |
+| `Emoji` | string | Emoji character (e.g. 👍) |
+| `CreatedAt` | DateTimeOffset | Reaction timestamp |
+
+**Unique Constraint:** (`MessageId`, `UserId`, `Emoji`) — one reaction per emoji per user per message
+
+**Relationships:**
+- Many-to-one with `Message` (cascade delete)
+- Many-to-one with `User` (cascade delete)
 
 ## Database Context
 
@@ -186,6 +214,7 @@ public class CodecDbContext : DbContext
     public DbSet<Channel> Channels => Set<Channel>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<ServerMember> ServerMembers => Set<ServerMember>();
+    public DbSet<Reaction> Reactions => Set<Reaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -346,6 +375,15 @@ modelBuilder.Entity<ServerMember>()
 // Channel messages (frequent range queries)
 modelBuilder.Entity<Message>()
     .HasIndex(m => m.ChannelId);
+
+// Reaction uniqueness (one reaction per emoji per user per message)
+modelBuilder.Entity<Reaction>()
+    .HasIndex(r => new { r.MessageId, r.UserId, r.Emoji })
+    .IsUnique();
+
+// Reaction lookup by user
+modelBuilder.Entity<Reaction>()
+    .HasIndex(r => r.UserId);
 ```
 
 ### Query Patterns
@@ -369,7 +407,6 @@ var messages = await db.Messages
 
 ### Near-term Additions
 - Direct message channels (1-on-1 chat)
-- Message reactions (emoji)
 - File attachments metadata
 - User preferences/settings
 

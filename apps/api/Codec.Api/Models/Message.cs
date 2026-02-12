@@ -10,4 +10,5 @@ public class Message
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public User? AuthorUser { get; set; }
     public Channel? Channel { get; set; }
+    public List<Reaction> Reactions { get; set; } = new();
 }

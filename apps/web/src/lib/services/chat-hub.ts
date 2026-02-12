@@ -1,11 +1,18 @@
 import { HubConnectionBuilder, HubConnectionState } from '@microsoft/signalr';
 import type { HubConnection } from '@microsoft/signalr';
-import type { Message } from '$lib/types/index.js';
+import type { Message, Reaction } from '$lib/types/index.js';
+
+export type ReactionUpdate = {
+	messageId: string;
+	channelId: string;
+	reactions: Reaction[];
+};
 
 export type SignalRCallbacks = {
 	onMessage: (msg: Message) => void;
 	onUserTyping: (channelId: string, displayName: string) => void;
 	onUserStoppedTyping: (channelId: string, displayName: string) => void;
+	onReactionUpdated: (update: ReactionUpdate) => void;
 };
 
 /**
@@ -33,6 +40,7 @@ export class ChatHubService {
 		connection.on('ReceiveMessage', callbacks.onMessage);
 		connection.on('UserTyping', callbacks.onUserTyping);
 		connection.on('UserStoppedTyping', callbacks.onUserStoppedTyping);
+		connection.on('ReactionUpdated', callbacks.onReactionUpdated);
 
 		try {
 			await connection.start();

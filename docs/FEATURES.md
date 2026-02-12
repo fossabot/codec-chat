@@ -33,6 +33,7 @@ This document tracks implemented, in-progress, and planned features for Codec.
 - ✅ Timestamp display
 - ✅ Real-time message delivery via SignalR (no page refresh needed)
 - ✅ Typing indicators ("X is typing…")
+- ✅ Emoji reactions on messages (toggle via floating action bar, reaction pills with counts, real-time sync via SignalR)
 
 ### UI/UX
 - ✅ CODEC CRT phosphor-green theme (CSS custom properties, design tokens)
@@ -41,6 +42,8 @@ This document tracks implemented, in-progress, and planned features for Codec.
 - ✅ Server icon rail with circular icons, active pill indicator, hover morph
 - ✅ Channel list with `#` hash icons and active/hover states
 - ✅ Message feed with avatars, grouped consecutive messages, hover timestamps
+- ✅ Floating reaction action bar on message hover (emoji picker with 8 quick emojis)
+- ✅ Reaction pills below messages (emoji + count, highlighted when user has reacted)
 - ✅ Inline message composer with send icon and focus glow
 - ✅ User panel pinned to bottom of channel sidebar
 - ✅ Members sidebar grouped by role (Owner, Admin, Member)
@@ -91,7 +94,6 @@ This document tracks implemented, in-progress, and planned features for Codec.
 ### Messaging Features
 - Direct messages (1-on-1 chat)
 - Message editing and deletion
-- Message reactions/emojis
 - Rich text formatting (markdown)
 - @mentions
 - Message search

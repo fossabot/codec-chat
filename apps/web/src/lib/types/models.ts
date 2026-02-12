@@ -19,6 +19,13 @@ export type Channel = {
 	serverId: string;
 };
 
+/** Aggregated emoji reaction on a message. */
+export type Reaction = {
+	emoji: string;
+	count: number;
+	userIds: string[];
+};
+
 /** Chat message in a channel. */
 export type Message = {
 	id: string;
@@ -27,6 +34,7 @@ export type Message = {
 	createdAt: string;
 	channelId: string;
 	authorUserId?: string | null;
+	reactions: Reaction[];
 };
 
 /** Member of a server. */

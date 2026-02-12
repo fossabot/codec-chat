@@ -59,6 +59,7 @@ src/
 │   │   │   ├── ChatArea.svelte           # Chat shell (header, feed, composer)
 │   │   │   ├── MessageFeed.svelte        # Scrollable message list with grouping
 │   │   │   ├── MessageItem.svelte        # Single message (grouped/ungrouped)
+│   │   │   ├── ReactionBar.svelte        # Reaction pills (emoji + count)
 │   │   │   ├── Composer.svelte           # Message input with send button
 │   │   │   └── TypingIndicator.svelte    # Animated typing dots
 │   │   └── members/
@@ -212,6 +213,7 @@ The `AppState` class in `app-state.svelte.ts` uses Svelte 5 runes (`$state`, `$d
 #### Messaging
 - `GET /channels/{channelId}/messages` - Get messages in a channel (requires membership)
 - `POST /channels/{channelId}/messages` - Post a message to a channel (requires membership; broadcasts via SignalR)
+- `POST /channels/{channelId}/messages/{messageId}/reactions` - Toggle an emoji reaction on a message (requires membership; broadcasts via SignalR)
 
 ### SignalR Hub (`/hubs/chat`)
 
@@ -230,9 +232,10 @@ The SignalR hub provides real-time communication. Clients connect with their JWT
 #### Server → Client Events
 | Event | Payload | Description |
 |-------|---------|-------------|
-| `ReceiveMessage` | `{ id, authorName, authorUserId, body, createdAt, channelId }` | New message posted to current channel |
+| `ReceiveMessage` | `{ id, authorName, authorUserId, body, createdAt, channelId, reactions }` | New message posted to current channel |
 | `UserTyping` | `channelId: string, displayName: string` | Another user started typing |
 | `UserStoppedTyping` | `channelId: string, displayName: string` | Another user stopped typing |
+| `ReactionUpdated` | `{ messageId, channelId, reactions: [{ emoji, count, userIds }] }` | Reaction toggled on a message |
 
 ### Request/Response Format
 All endpoints use JSON for request bodies and responses.
@@ -305,7 +308,32 @@ Content-Type: application/json
   "authorUserId": "123e4567-e89b-12d3-a456-426614174000",
   "body": "Hello, world!",
   "createdAt": "2026-02-11T17:30:00Z",
-  "channelId": "550e8400-e29b-41d4-a716-446655440000"
+  "channelId": "550e8400-e29b-41d4-a716-446655440000",
+  "reactions": []
+}
+```
+
+**Example Request (Toggle Reaction):**
+```http
+POST /channels/550e8400-e29b-41d4-a716-446655440000/messages/7c9e6679-7425-40de-944b-e07fc1f90ae7/reactions HTTP/1.1
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "emoji": "👍"
+}
+```
+
+**Example Response (Toggle Reaction):**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "action": "added",
+  "reactions": [
+    { "emoji": "👍", "count": 1, "userIds": ["123e4567-e89b-12d3-a456-426614174000"] }
+  ]
 }
 ```
 
@@ -315,7 +343,9 @@ Content-Type: application/json
 ```
 User ────┬──── ServerMember ──── Server
          │                         │
-         └──── Message ──────── Channel
+         ├──── Message ──────── Channel
+         │        │
+         └──── Reaction ────────┘
 ```
 
 ### Core Entities
@@ -342,6 +372,12 @@ User ────┬──── ServerMember ──── Server
 #### Message
 - Individual chat message in a channel
 - Fields: Id, ChannelId, AuthorUserId, AuthorName, Body, CreatedAt
+- Has many `Reaction` entries
+
+#### Reaction
+- Emoji reaction on a message by a user
+- Fields: Id, MessageId, UserId, Emoji, CreatedAt
+- Unique constraint on (MessageId, UserId, Emoji) — one reaction per emoji per user per message
 
 ## Configuration
 

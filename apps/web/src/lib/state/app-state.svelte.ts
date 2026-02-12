@@ -10,6 +10,7 @@ import type {
 } from '$lib/types/index.js';
 import { ApiClient, ApiError } from '$lib/api/client.js';
 import { ChatHubService } from '$lib/services/chat-hub.js';
+import type { ReactionUpdate } from '$lib/services/chat-hub.js';
 import {
 	persistToken,
 	loadStoredToken,
@@ -371,6 +372,19 @@ export class AppState {
 		this.hub.emitTyping(this.selectedChannelId, this.me.user.displayName);
 	}
 
+	async toggleReaction(messageId: string, emoji: string): Promise<void> {
+		if (!this.idToken || !this.selectedChannelId) return;
+		try {
+			await this.api.toggleReaction(this.idToken, this.selectedChannelId, messageId, emoji);
+			// Real-time update arrives via SignalR; fall back to reload if disconnected.
+			if (!this.hub.isConnected) {
+				await this.loadMessages(this.selectedChannelId);
+			}
+		} catch (e) {
+			this.setError(e);
+		}
+	}
+
 	/* ═══════════════════ SignalR ═══════════════════ */
 
 	private async startSignalR(token: string): Promise<void> {
@@ -390,6 +404,13 @@ export class AppState {
 			onUserStoppedTyping: (channelId, displayName) => {
 				if (channelId === this.selectedChannelId) {
 					this.typingUsers = this.typingUsers.filter((u) => u !== displayName);
+				}
+			},
+			onReactionUpdated: (update: ReactionUpdate) => {
+				if (update.channelId === this.selectedChannelId) {
+					this.messages = this.messages.map((m) =>
+						m.id === update.messageId ? { ...m, reactions: update.reactions } : m
+					);
 				}
 			}
 		});

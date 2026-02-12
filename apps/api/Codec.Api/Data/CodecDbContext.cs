@@ -15,6 +15,7 @@ public class CodecDbContext : DbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<User> Users => Set<User>();
     public DbSet<ServerMember> ServerMembers => Set<ServerMember>();
+    public DbSet<Reaction> Reactions => Set<Reaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +50,21 @@ public class CodecDbContext : DbContext
             .HasOne(member => member.User)
             .WithMany(user => user.ServerMemberships)
             .HasForeignKey(member => member.UserId);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(reaction => reaction.Message)
+            .WithMany(message => message.Reactions)
+            .HasForeignKey(reaction => reaction.MessageId);
+
+        modelBuilder.Entity<Reaction>()
+            .HasOne(reaction => reaction.User)
+            .WithMany(user => user.Reactions)
+            .HasForeignKey(reaction => reaction.UserId);
+
+        // Each user can react with a given emoji on a message at most once.
+        modelBuilder.Entity<Reaction>()
+            .HasIndex(reaction => new { reaction.MessageId, reaction.UserId, reaction.Emoji })
+            .IsUnique();
 
         // SQLite does not natively support DateTimeOffset ordering.
         // Store as ISO 8601 strings so ORDER BY works correctly.
